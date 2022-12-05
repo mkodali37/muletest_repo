@@ -23,7 +23,7 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 				<http:body ><![CDATA[#[payload]]]></http:body>
 			</http:error-response>
 		</http:listener>
-		<validation:is-number doc:name="Is number" doc:id="88670956-68dd-4759-b18b-63584970ff2d" config-ref="Validation_Config" value="#[attributes.queryParams]" numberType="INTEGER" message="release year is not a number"/>
+		<validation:is-number doc:name="Is A number" doc:id="88670956-68dd-4759-b18b-63584970ff2d" config-ref="Validation_Config" value="#[attributes.queryParams]" numberType="INTEGER" message="release year is not a number"/>
 		<db:select doc:name="Select" doc:id="c01201be-fb0f-4c21-8d89-9e20bb149b26" config-ref="Database_Config">
 			<db:sql ><![CDATA[select * from films where release_year=1996;]]></db:sql>
 		</db:select>
