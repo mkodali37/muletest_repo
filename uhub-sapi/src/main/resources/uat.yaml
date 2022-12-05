@@ -1,0 +1,8 @@
+http:
+  port: "8082"
+  
+db:
+  password: "![4reB311qY3nwfLmlnUyWPw==]"
+  host: "localhost"
+  post: "3306"
+    
