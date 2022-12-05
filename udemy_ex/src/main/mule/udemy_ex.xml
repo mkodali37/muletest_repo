@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="ce647ad0-1145-4a2e-a951-02d5584d6ac8" file="${env}.yaml" />
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="86835e86-16f0-4934-a99e-005b39917804" >
+		<http:listener-connection host="0.0.0.0" port="${secure::http.port}" />
+	</http:listener-config>
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="5b9bdf19-c86f-4588-bde4-c4f66d6fddb3" file="dev.yaml" key="password12345678" />
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="9ee08216-173a-4111-a3df-3f4d6f365a85" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="Sriram^123US" />
+	</db:config>
+	<validation:config name="Validation_Config" doc:name="Validation Config" doc:id="5d29ef12-71fe-4824-8bd9-2bdf9b1b3b17" />
+	<flow name="udemy_exFlow" doc:id="36d7872e-c35e-4b55-a063-3eda52281731" initialState="stopped">
+		<http:listener doc:name="Listener" doc:id="138feac1-e8c2-4b85-9862-cbe71e272cc7" config-ref="HTTP_Listener_config" path="/envexample">
+			<http:error-response statusCode="#[vars.statusCode]" reasonPhrase="#[vars.reason]" >
+				<http:body ><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<validation:is-number doc:name="Is number" doc:id="88670956-68dd-4759-b18b-63584970ff2d" config-ref="Validation_Config" value="#[attributes.queryParams]" numberType="INTEGER" message="release year is not a number"/>
+		<db:select doc:name="Select" doc:id="c01201be-fb0f-4c21-8d89-9e20bb149b26" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from films where release_year=1996;]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="19673ed3-790b-4a98-a89f-91085fb13849" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="ad378678-7d5c-4354-97b5-d25be3a416f2" message="#['password is: ${secure::environment.password} AND environment is: ${environment.message}']"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f5381461-ddd7-411f-a2f9-82ff6f77ba1e" type="DB:CONNECTIVITY">
+				<ee:transform doc:name="Transform Message" doc:id="dd83b1b5-1ed0-4003-847d-3ec6c2dd4769" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	status: 400,
+	message: error.description
+}
+]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="statusCode" ><![CDATA[400]]></ee:set-variable>
+						<ee:set-variable variableName="reason" ><![CDATA["Bad request"]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="3af3d108-c9d3-4053-89dc-fa0ab534eaf2" type="VALIDATION:INVALID_NUMBER">
+				<ee:transform doc:name="Transform Message" doc:id="98e6b990-6ec5-408a-9481-aa92b3cfb27b" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	status: 400,
+	message: "release year is not a number"
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="statusCode" ><![CDATA[400]]></ee:set-variable>
+						<ee:set-variable variableName="reason" ><![CDATA["Bad request"]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

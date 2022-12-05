@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="scatter_gatherFlow" doc:id="c773570d-b841-4619-b921-19b803cc40a8" initialState="stopped">
+		<http:listener doc:name="Listener" doc:id="367658f3-38de-4f24-be74-799774ec429a" config-ref="HTTP_Listener_config" path="/scattergather"/>
+		<logger level="INFO" doc:name="Logger" doc:id="1ed740cb-1ec5-4a53-9238-5a14135ee6de" message="---------------- starting scatter gather --------------"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="79436508-d3c4-4244-8a01-80a180ca4252" >
+			<route >
+				<set-payload value="Apple" doc:name="Apple payload" doc:id="b5e23fe6-f7ca-42d3-a791-5a00a62e5bd1" />
+			</route>
+			<route >
+				<set-payload value="strawberry" doc:name="strawberryPayload" doc:id="19be82bb-71cb-4552-9b22-f3bed6547825" />
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="302c08ab-7af7-4ae2-96a8-9c59befb306b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var x = payload
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="0739841f-0f32-434b-8ce6-bdc31a0c76f7" message="#[payload]"/>
+	</flow>
+</mule>

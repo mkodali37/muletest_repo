@@ -1,0 +1,6 @@
+http:
+  port: "8081"
+  
+environment:
+  message: "test environment"
+  password: "![qiKIOAFqO9NhoWkZe6XOag==]"  

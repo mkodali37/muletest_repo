@@ -1,0 +1,6 @@
+http:
+  port: "8081"
+  
+environment:
+  message: "dev environment"
+  password: "![qiKIOAFqO9NhoWkZe6XOag==]"  
